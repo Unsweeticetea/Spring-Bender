@@ -28,6 +28,9 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="sizeAdjustPolicy">
+      <enum>QAbstractScrollArea::AdjustIgnored</enum>
+     </property>
      <property name="sortingEnabled">
       <bool>true</bool>
      </property>

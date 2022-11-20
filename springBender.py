@@ -1,5 +1,6 @@
 import sys
 import sympy.physics.units as u
+from sympy import pi, Symbol, symbols, sqrt, N
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QTableView, QHeaderView
 from PyQt5.QtGui import QPalette, QColor, QStandardItemModel, QStandardItem
@@ -15,10 +16,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tabs.removeTab(2)
         self.tabs.setCurrentIndex(0)
         self.connections()
+        self.output_table = OutputTable()
 
     def connections(self):
         '''Programs all connections for main window'''
-        self.btn_Generate.clicked.connect(self.generate)
+        #self.btn_Generate.clicked.connect(self.generate)
+        self.btn_Generate.clicked.connect(self.test)
         self.chk_advanced.clicked.connect(self.show_tabs)
 
     def show_tabs(self):
@@ -30,13 +33,68 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tabs.removeTab(3)
             self.tabs.removeTab(2)
 
-    def send_row(self, d, f_max, y_max, l0_max, R, E, A, m):
-        i_d=QStandardItem()
-        i_d.setData(d, role=Qt.DisplayRole)
-        i_f=QStandardItem()
-        i_f.setData("A", role=Qt.DisplayRole)
-        self.table.model.appendRow([i_d,i_f])
-        return
+
+
+    def send_row(self, d, f_max, y_max, l0, G, E, A, m, ns, xi):
+        '''Creates a row from given inputs'''
+        d=d*getattr(u, self.unitD.checkedButton().objectName()[5:])
+        #computes expressions
+        ssy=.45*A/(d**m)
+        alpha=ssy/ns
+        beta=u.convert_to((8*(1+xi)*f_max)/(N(pi)*(d**2)),u.psi)
+        C=u.convert_to(((2*alpha-beta)/(4*beta))+sqrt(((2*alpha-beta)/(4*beta))**2-((3*alpha)/(4*beta))),1)
+        D=C*d
+        kb=(4*C+2)/(4*C-3)
+        tau=u.convert_to(kb*8*f_max*(1+xi)*D/(N(pi)*d**3),u.psi)
+        OD=D+d
+        ID=D-d
+        na=u.convert_to((G*(d**4)*y_max)/(8*(D**3)*f_max),1)
+        nt=na+2
+        if self.chk_ground.isChecked():
+            p=((l0-2*d))/na
+            ls=d*nt
+        else:
+            p=((l0-3*d))/na
+            ls=d*(nt+1)
+        #lcr=u.convert_to((N(pi)*D/.5)*sqrt(2*(E-G)/(2*G+E)),u.inch)
+        #lcr=2.63*D/.5
+        lcr=u.convert_to((N(pi)*D/.5)*(((2*(E-G))/(2*G+E))**.5),u.inch)
+        #lcr=u.convert_to((N(pi))*(((2*(29-11.85))/(2*11.85+29))**.5),u.inch)
+        #print(E,G)
+        #creates items for all output variables
+        i_d=QStandardItem(str(d))
+        i_ssy=QStandardItem(str(ssy))
+        i_alpha=QStandardItem(str(alpha))
+        i_beta=QStandardItem(str(beta))
+        i_C=QStandardItem(str(C))
+        i_D=QStandardItem(str(D))
+        i_kb=QStandardItem(str(kb))
+        i_tau=QStandardItem(str(tau))
+        i_OD=QStandardItem(str(OD))
+        i_ID=QStandardItem(str(ID))
+        i_na=QStandardItem(str(na))
+        i_nt=QStandardItem(str(nt))
+        i_p=QStandardItem(str(p))
+        i_ls=QStandardItem(str(ls))
+        i_lcr=QStandardItem(str(lcr))
+
+        #puts items into a new row
+        self.output_table.output_model.appendRow([\
+            i_d, \
+            i_ssy, \
+            i_alpha, \
+            i_beta, \
+            i_C, \
+            i_D, \
+            i_kb, \
+            i_tau, \
+            i_OD, \
+            i_ID, \
+            i_na, \
+            i_nt, \
+            i_p, \
+            i_ls, \
+            i_lcr])
 
     def generate(self):
         '''gathers values and units then sends for calculations'''
@@ -44,44 +102,77 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #Design
         f_max = self.sb_F.value()*getattr(u, self.unitF.checkedButton().objectName()[5:])*u.acceleration_due_to_gravity
         y_max = self.sb_F.value()*getattr(u, self.unitY.checkedButton().objectName()[5:])
-        l0_max = self.sb_F.value()*getattr(u, self.unitL.checkedButton().objectName()[5:])
+        l0 = self.sb_F.value()*getattr(u, self.unitL.checkedButton().objectName()[5:])
         #Wire Diameter
-        dmin=self.sb_dmin.value()
-        dstep=self.sb_dstep.value()
-        dmax=self.sb_dmax.value()
+        dmin=int(self.sb_dmin.value()*(10**6))
+        dstep=int(self.sb_dstep.value()*(10**6))
+        dmax=int(self.sb_dmax.value()*(10**6))
         #Material
         if self.unitR.checkedButton().objectName()[5:]=="Metric":
-            R=self.sb_R.value()*u.pascal*1000000000
+            G=self.sb_R.value()*u.pascal*u.giga
         else:
-            R=self.sb_R.value()*u.psi*1000000
+            G=self.sb_R.value()*u.psi*u.mega
         if self.unitE.checkedButton().objectName()[5:]=="Metric":
-            E=self.sb_E.value()*u.pascal*1000000000
+            E=self.sb_E.value()*u.pascal*u.giga
         else:
-            E=self.sb_E.value()*u.psi*1000000
+            E=self.sb_E.value()*u.psi*u.mega
         m=self.sb_m.value()
         A=self.sb_A.value()
         if self.unitA.checkedButton().objectName()[5:]=="Metric":
             A*=u.psi*1000*(u.inch**m)
         else:
-            A*=u.pascal*1000000*(u.mm**m)
+            A*=u.pascal*u.mega*(u.mm**m)
         #Properties
         ns=self.sb_ns.value()
-        Xi=self.sb_Xi.value()
-        self.table = OutputTable()
-        self.table.show()
-        for d in (d / (10**6) for d in range(int(dmin*(10**6)),int(dmax*(10**6))+1,int(dstep*(10**6)))):
-            self.send_row(d, f_max, y_max, l0_max, R, E, A, m)
+        xi=self.sb_Xi.value()
+        
+        #generates expressions and creates output table
+        self.output_table = OutputTable()
+        self.output_table.show()
+
+        #populates output table
+        for d in (d / (10**6) for d in range(dmin,dmax+1,dstep)):
+            self.send_row(d, f_max, y_max, l0, G, E, A, m, ns, xi)
+
+    def test(self):
+        '''gathers values and units then sends for calculations'''
+        print("Testing")
+        #Collect inputs
+        self.chk_ground.setChecked(True)
+        #Design
+        f_max = 20*u.pound*u.convert_to((9.80665*u.m/u.s**2),u.N)
+        y_max = 2*u.inch
+        l0 = 3.25*u.inch
+        #Wire Diameter
+        dmin=int(.055*(10**6))
+        dstep=int(.005*(10**6))
+        dmax=int(.105*(10**6))
+        #Material
+        E=28.5*u.psi*1000000
+        G=11.75*u.psi*1000000
+        m=.145
+        A=201*u.psi*1000*(u.inch**m)
+        #Properties
+        ns=1.2
+        xi=.15
+        
+        #generates expressions and creates output table
+        self.output_table.show()
+
+        #populates output table
+        for d in (d / (10**6) for d in range(dmin,dmax+1,dstep)):
+            self.send_row(d, f_max, y_max, l0, G, E, A, m, ns, xi)
 
 class OutputTable(QWidget, Ui_OutputTable):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
-        self.model = QStandardItemModel(0,15)
-        self.model.setHorizontalHeaderLabels(
-            ["d","Ssy","α","β","C","D","K_B","τ_s","OD","ID","Na","Nt","p","Ls","L_cr",]
+        self.output_model = QStandardItemModel(0,15)
+        self.output_model.setHorizontalHeaderLabels(
+            ["d","Ssy","α","β","C","D","K_B","τ_s","OD","ID","Na","Nt","p","Ls","L_cr"]
         )
-        self.tableView.setModel(self.model)
-        self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.tableView.setModel(self.output_model)
+        self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

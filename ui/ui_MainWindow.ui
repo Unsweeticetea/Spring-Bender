@@ -48,7 +48,7 @@
        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_Design">
        <property name="toolTip">
@@ -72,7 +72,7 @@
          </widget>
         </item>
         <item row="3" column="0" colspan="2">
-         <widget class="QCheckBox" name="chk_ends">
+         <widget class="QCheckBox" name="chk_ground">
           <property name="toolTip">
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adds extra dead coils that need to be sanded flat. Increases spring precision.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
@@ -81,10 +81,23 @@
           </property>
          </widget>
         </item>
-        <item row="3" column="2" rowspan="2" colspan="2">
+        <item row="3" column="3" rowspan="2" colspan="2">
          <widget class="QPushButton" name="btn_Generate">
           <property name="text">
            <string>Generate</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLabel" name="label_L">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Uncompressed Length</string>
           </property>
          </widget>
         </item>
@@ -99,45 +112,6 @@
          </widget>
         </item>
         <item row="1" column="3">
-         <widget class="QDoubleSpinBox" name="sb_Y">
-          <property name="decimals">
-           <number>3</number>
-          </property>
-          <property name="maximum">
-           <double>999.990000000000009</double>
-          </property>
-          <property name="singleStep">
-           <double>0.100000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="3">
-         <widget class="QDoubleSpinBox" name="sb_L">
-          <property name="decimals">
-           <number>3</number>
-          </property>
-          <property name="maximum">
-           <double>999.990000000000009</double>
-          </property>
-          <property name="singleStep">
-           <double>0.100000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="2">
-         <widget class="QLabel" name="label_L">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Uncompressed Length</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
          <widget class="QLabel" name="label_Y">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -161,6 +135,19 @@
           <attribute name="buttonGroup">
            <string notr="true">unitL</string>
           </attribute>
+         </widget>
+        </item>
+        <item row="0" column="3">
+         <widget class="QLabel" name="label_F">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Spring Weight</string>
+          </property>
          </widget>
         </item>
         <item row="1" column="1">
@@ -193,20 +180,69 @@
           </attribute>
          </widget>
         </item>
-        <item row="0" column="2">
-         <widget class="QLabel" name="label_F">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
+        <item row="1" column="0">
+         <widget class="QRadioButton" name="rd_Y_inch">
           <property name="text">
-           <string>Spring Weight</string>
+           <string>in</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">unitY</string>
+          </attribute>
+         </widget>
+        </item>
+        <item row="3" column="5">
+         <widget class="QRadioButton" name="rd_O_Imperial">
+          <property name="text">
+           <string>Imperial</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">unitO</string>
+          </attribute>
+         </widget>
+        </item>
+        <item row="4" column="5">
+         <widget class="QRadioButton" name="rd_O_Metric">
+          <property name="text">
+           <string>Metric</string>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">unitO</string>
+          </attribute>
+         </widget>
+        </item>
+        <item row="2" column="4" colspan="2">
+         <widget class="QDoubleSpinBox" name="sb_L">
+          <property name="decimals">
+           <number>3</number>
+          </property>
+          <property name="maximum">
+           <double>999.990000000000009</double>
+          </property>
+          <property name="singleStep">
+           <double>0.100000000000000</double>
           </property>
          </widget>
         </item>
-        <item row="0" column="3">
+        <item row="1" column="4" colspan="2">
+         <widget class="QDoubleSpinBox" name="sb_Y">
+          <property name="decimals">
+           <number>3</number>
+          </property>
+          <property name="maximum">
+           <double>999.990000000000009</double>
+          </property>
+          <property name="singleStep">
+           <double>0.100000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="4" colspan="2">
          <widget class="QDoubleSpinBox" name="sb_F">
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -223,19 +259,6 @@
           <property name="singleStep">
            <double>0.100000000000000</double>
           </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QRadioButton" name="rd_Y_inch">
-          <property name="text">
-           <string>in</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-          <attribute name="buttonGroup">
-           <string notr="true">unitY</string>
-          </attribute>
          </widget>
         </item>
        </layout>
@@ -266,7 +289,7 @@
               <bool>true</bool>
              </property>
              <attribute name="buttonGroup">
-              <string notr="true">unitd</string>
+              <string notr="true">unitD</string>
              </attribute>
             </widget>
            </item>
@@ -276,7 +299,7 @@
               <string>mm</string>
              </property>
              <attribute name="buttonGroup">
-              <string notr="true">unitd</string>
+              <string notr="true">unitD</string>
              </attribute>
             </widget>
            </item>
@@ -286,18 +309,37 @@
         <item row="0" column="1">
          <layout class="QFormLayout" name="form_Diameter">
           <item row="0" column="0">
-           <widget class="QLabel" name="label_dmax">
+           <widget class="QLabel" name="label_dmin">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="layoutDirection">
+             <enum>Qt::RightToLeft</enum>
+            </property>
             <property name="text">
-             <string>Max</string>
+             <string>Min</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QDoubleSpinBox" name="sb_dmin">
+            <property name="decimals">
+             <number>3</number>
+            </property>
+            <property name="maximum">
+             <double>999.990000000000009</double>
+            </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.005000000000000</double>
             </property>
            </widget>
           </item>
@@ -334,18 +376,15 @@
            </widget>
           </item>
           <item row="2" column="0">
-           <widget class="QLabel" name="label_dmin">
+           <widget class="QLabel" name="label_dmax">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="layoutDirection">
-             <enum>Qt::RightToLeft</enum>
-            </property>
             <property name="text">
-             <string>Min</string>
+             <string>Max</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -353,22 +392,6 @@
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QDoubleSpinBox" name="sb_dmin">
-            <property name="decimals">
-             <number>3</number>
-            </property>
-            <property name="maximum">
-             <double>999.990000000000009</double>
-            </property>
-            <property name="singleStep">
-             <double>0.010000000000000</double>
-            </property>
-            <property name="value">
-             <double>0.005000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
            <widget class="QDoubleSpinBox" name="sb_dmax">
             <property name="decimals">
              <number>3</number>
@@ -505,7 +528,7 @@
            <double>999.990000000000009</double>
           </property>
           <property name="value">
-           <double>11.850000000000000</double>
+           <double>29.000000000000000</double>
           </property>
          </widget>
         </item>
@@ -566,7 +589,7 @@
            <double>999.990000000000009</double>
           </property>
           <property name="value">
-           <double>29.000000000000000</double>
+           <double>11.850000000000000</double>
           </property>
          </widget>
         </item>
@@ -672,11 +695,12 @@
  <connections/>
  <buttongroups>
   <buttongroup name="unitY"/>
-  <buttongroup name="unitF"/>
-  <buttongroup name="unitL"/>
+  <buttongroup name="unitD"/>
   <buttongroup name="unitA"/>
-  <buttongroup name="unitd"/>
-  <buttongroup name="unitE"/>
   <buttongroup name="unitR"/>
+  <buttongroup name="unitL"/>
+  <buttongroup name="unitF"/>
+  <buttongroup name="unitE"/>
+  <buttongroup name="unitO"/>
  </buttongroups>
 </ui>

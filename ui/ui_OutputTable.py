@@ -28,6 +28,7 @@ class Ui_OutputTable(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tableView.sizePolicy().hasHeightForWidth())
         self.tableView.setSizePolicy(sizePolicy)
+        self.tableView.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustIgnored)
         self.tableView.setSortingEnabled(True)
         self.tableView.setObjectName("tableView")
         self.gridLayout.addWidget(self.tableView, 0, 0, 1, 1)
