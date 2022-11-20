@@ -48,7 +48,7 @@
        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab_Design">
        <property name="toolTip">
@@ -423,7 +423,7 @@
        </attribute>
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="1" column="0">
-         <widget class="QRadioButton" name="rd_R_Imperial">
+         <widget class="QRadioButton" name="rd_G_Imperial">
           <property name="text">
            <string>Mpsi</string>
           </property>
@@ -431,7 +431,7 @@
            <bool>true</bool>
           </property>
           <attribute name="buttonGroup">
-           <string notr="true">unitR</string>
+           <string notr="true">unitG</string>
           </attribute>
          </widget>
         </item>
@@ -446,7 +446,7 @@
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QRadioButton" name="rd_E_Imperial">
+         <widget class="QRadioButton" name="rd_E_Metric">
           <property name="text">
            <string>GPa</string>
           </property>
@@ -469,12 +469,12 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QRadioButton" name="rd_R_Metric">
+         <widget class="QRadioButton" name="rd_G_Metric">
           <property name="text">
            <string>GPa</string>
           </property>
           <attribute name="buttonGroup">
-           <string notr="true">unitR</string>
+           <string notr="true">unitG</string>
           </attribute>
          </widget>
         </item>
@@ -533,7 +533,7 @@
          </widget>
         </item>
         <item row="2" column="2">
-         <widget class="QLabel" name="label_L_2">
+         <widget class="QLabel" name="label_A">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -549,7 +549,7 @@
          </widget>
         </item>
         <item row="1" column="2">
-         <widget class="QLabel" name="label_Y_2">
+         <widget class="QLabel" name="label_G">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -562,7 +562,7 @@
          </widget>
         </item>
         <item row="3" column="2">
-         <widget class="QLabel" name="label_L_4">
+         <widget class="QLabel" name="label_m">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -578,7 +578,7 @@
          </widget>
         </item>
         <item row="1" column="3">
-         <widget class="QDoubleSpinBox" name="sb_R">
+         <widget class="QDoubleSpinBox" name="sb_G">
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -594,7 +594,7 @@
          </widget>
         </item>
         <item row="0" column="2">
-         <widget class="QLabel" name="label_F_2">
+         <widget class="QLabel" name="label_E">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -607,7 +607,7 @@
          </widget>
         </item>
         <item row="0" column="0">
-         <widget class="QRadioButton" name="rd_E_Metric">
+         <widget class="QRadioButton" name="rd_E_Imperial">
           <property name="text">
            <string>Mpsi</string>
           </property>
@@ -694,13 +694,13 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="unitY"/>
-  <buttongroup name="unitD"/>
-  <buttongroup name="unitA"/>
-  <buttongroup name="unitR"/>
-  <buttongroup name="unitL"/>
-  <buttongroup name="unitF"/>
-  <buttongroup name="unitE"/>
   <buttongroup name="unitO"/>
+  <buttongroup name="unitL"/>
+  <buttongroup name="unitE"/>
+  <buttongroup name="unitF"/>
+  <buttongroup name="unitD"/>
+  <buttongroup name="unitG"/>
+  <buttongroup name="unitA"/>
+  <buttongroup name="unitY"/>
  </buttongroups>
 </ui>

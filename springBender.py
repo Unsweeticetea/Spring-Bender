@@ -20,8 +20,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def connections(self):
         '''Programs all connections for main window'''
-        #self.btn_Generate.clicked.connect(self.generate)
-        self.btn_Generate.clicked.connect(self.test)
+        self.btn_Generate.clicked.connect(self.generate)
         self.chk_advanced.clicked.connect(self.show_tabs)
 
     def show_tabs(self):
@@ -33,11 +32,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tabs.removeTab(3)
             self.tabs.removeTab(2)
 
-
-
     def send_row(self, d, f_max, y_max, l0, G, E, A, m, ns, xi):
         '''Creates a row from given inputs'''
         d=d*getattr(u, self.unitD.checkedButton().objectName()[5:])
+
         #computes expressions
         ssy=.45*A/(d**m)
         alpha=ssy/ns
@@ -56,11 +54,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             p=((l0-3*d))/na
             ls=d*(nt+1)
-        #lcr=u.convert_to((N(pi)*D/.5)*sqrt(2*(E-G)/(2*G+E)),u.inch)
-        #lcr=2.63*D/.5
+        print(E, G, D)
         lcr=u.convert_to((N(pi)*D/.5)*(((2*(E-G))/(2*G+E))**.5),u.inch)
-        #lcr=u.convert_to((N(pi))*(((2*(29-11.85))/(2*11.85+29))**.5),u.inch)
-        #print(E,G)
+
         #creates items for all output variables
         i_d=QStandardItem(str(d))
         i_ssy=QStandardItem(str(ssy))
@@ -100,7 +96,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         '''gathers values and units then sends for calculations'''
         #Collect inputs
         #Design
-        f_max = self.sb_F.value()*getattr(u, self.unitF.checkedButton().objectName()[5:])*u.acceleration_due_to_gravity
+        f_max = self.sb_F.value()*getattr(u, self.unitF.checkedButton().objectName()[5:])*u.convert_to((9.80665*u.m/u.s**2),u.N)
         y_max = self.sb_F.value()*getattr(u, self.unitY.checkedButton().objectName()[5:])
         l0 = self.sb_F.value()*getattr(u, self.unitL.checkedButton().objectName()[5:])
         #Wire Diameter
@@ -108,20 +104,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dstep=int(self.sb_dstep.value()*(10**6))
         dmax=int(self.sb_dmax.value()*(10**6))
         #Material
-        if self.unitR.checkedButton().objectName()[5:]=="Metric":
-            G=self.sb_R.value()*u.pascal*u.giga
-        else:
-            G=self.sb_R.value()*u.psi*u.mega
         if self.unitE.checkedButton().objectName()[5:]=="Metric":
-            E=self.sb_E.value()*u.pascal*u.giga
+            print("E Metric")
+            E=self.sb_E.value()*u.pascal*1000000000
         else:
-            E=self.sb_E.value()*u.psi*u.mega
+            print("E Imperial")
+            E=self.sb_E.value()*u.psi*1000000
+        
+        if self.unitG.checkedButton().objectName()[5:]=="Metric":
+            print("G Metric")
+            G=self.sb_G.value()*u.pascal*1000000000
+        else:
+            print("G Imperial")
+            G=self.sb_G.value()*u.psi*1000000
+        
         m=self.sb_m.value()
         A=self.sb_A.value()
         if self.unitA.checkedButton().objectName()[5:]=="Metric":
             A*=u.psi*1000*(u.inch**m)
         else:
-            A*=u.pascal*u.mega*(u.mm**m)
+            A*=u.pascal*1000000*(u.mm**m)
         #Properties
         ns=self.sb_ns.value()
         xi=self.sb_Xi.value()
@@ -135,8 +137,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.send_row(d, f_max, y_max, l0, G, E, A, m, ns, xi)
 
     def test(self):
-        '''gathers values and units then sends for calculations'''
-        print("Testing")
+        '''tests output generation with known values'''
         #Collect inputs
         self.chk_ground.setChecked(True)
         #Design
@@ -164,6 +165,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.send_row(d, f_max, y_max, l0, G, E, A, m, ns, xi)
 
 class OutputTable(QWidget, Ui_OutputTable):
+    '''Table for storing calculated values'''
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
