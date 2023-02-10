@@ -1,8 +1,10 @@
+'''Runs a DIY desktop continuous spring bender'''
 import sys
-import sympy.physics.units as u
-from sympy import pi, Symbol, symbols, sqrt, N
+#import sympy.physics.units as u
+import pint
+from sympy import pi, sqrt, N, Eq, symbols, solve, solveset, linsolve
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QTableView, QHeaderView
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QHeaderView
 from PyQt5.QtGui import QPalette, QColor, QStandardItemModel, QStandardItem
 from ui.ui_MainWindow import Ui_MainWindow
 from ui.ui_OutputTable import  Ui_OutputTable
@@ -12,16 +14,71 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
-        self.tabs.removeTab(3)
-        self.tabs.removeTab(2)
-        self.tabs.setCurrentIndex(0)
+        self.setupUnits()
+        #self.tabs.removeTab(3)
+        #self.tabs.removeTab(2)
+        #self.tabs.setCurrentIndex(0)
         self.connections()
         self.output_table = OutputTable()
 
     def connections(self):
         '''Programs all connections for main window'''
-        self.btn_Generate.clicked.connect(self.generate)
-        self.chk_advanced.clicked.connect(self.show_tabs)
+        #self.btn_Generate.clicked.connect(self.equations)
+        self.btn_Generate.clicked.connect(self.test)
+        #self.chk_advanced.clicked.connect(self.show_tabs)
+
+    def setupUnits(self):
+        '''adds units to combo boxes'''
+        self.cb_F.addItems(["lbf","gf"])
+        self.cb_Y.addItems(["in","mm"])
+        self.cb_L.addItems(["in","mm"])
+        self.cb_d.addItems(["in","mm"])
+        self.cb_OD.addItems(["in","mm"])
+        self.cb_E.addItems(["Mpsi","GPa"])
+        self.cb_G.addItems(["Mpsi","GPa"])
+        self.cb_A.addItems(["kpsi*in^m","MPa*mm^m"])
+
+    def equations(self):
+        units = pint.UnitRegistry()
+
+        F, Y, L, E, G, A, m, ns, xi, d = symbols('F Y L E G A m ns xi d')
+        
+        F= self.sb_F.value()*units.force_pound if self.cb_F.currentIndex()==0 else self.sb_F.value()*units.force_gram
+        Y= self.sb_Y.value()*units.inch if self.cb_Y.currentIndex()==0 else self.sb_Y.value()*units.mm
+        L= self.sb_L.value()*units.inch if self.cb_L.currentIndex()==0 else self.sb_L.value()*units.mm
+        d= self.sb_d.value()*units.inch if self.cb_d.currentIndex()==0 else self.sb_d.value()*units.mm
+        OD= self.sb_OD.value()*units.inch if self.cb_OD.currentIndex()==0 else self.sb_OD.value()*units.mm
+        E= self.sb_E.value()*units.Mpsi if self.cb_E.currentIndex()==0 else self.sb_E.value()*units.gigapascal
+        G= self.sb_G.value()*units.Mpsi if self.cb_G.currentIndex()==0 else self.sb_G.value()*units.gigapascal
+        m= self.sb_m.value()
+        A= self.sb_A.value()*units.kilopound_force_per_square_inch*units.inch**m if self.cb_A.currentIndex()==0 else self.sb_A.value()*units.MPa*units.mm**m
+        ns= self.sb_ns.value()
+        xi= self.sb_Xi.value()
+        
+        '''ssy=Eq(.45*A/(d**m))
+        alpha=Eq(ssy.rhs/ns)
+        beta=Eq((8*(1+xi)*F)/(N(pi)*(d**2)))
+        C=Eq(((2*alpha.rhs-beta.rhs)/(4*beta.rhs))+sqrt(((2*alpha.rhs-beta.rhs)/(4*beta.rhs))**2-((3*alpha.rhs)/(4*beta.rhs))))
+        D=Eq(C.rhs*d)
+        kb=Eq((4*C.rhs+2)/(4*C.rhs-3))
+        tau=Eq(kb.rhs*8*F*(1+xi)*D.rhs/(N(pi)*d**3))
+        OD=Eq(D.rhs+d)
+        ID=Eq(D.rhs-d)
+        na=Eq((G.rhs*(d**4)*Y)/(8*(D.rhs**3)*F))
+        nt=Eq(na.rhs+2)'''
+
+    def test(self):
+       self.sb_F.setValue(20)
+       self.cb_F.setCurrentIndex(0)
+       self.sb_Y.setValue(2)
+       self.cb_Y.setCurrentIndex(0)
+       self.sb_L.setValue(3.25)
+       self.cb_L.setCurrentIndex(0)
+       self.sb_d.setValue(.08)
+       self.cb_d.setCurrentIndex(0)
+       self.sb_OD.setValue(0)
+       self.cb_OD.setCurrentIndex(0)
+       self.equations()
 
     def show_tabs(self):
         '''Adds or removes advanced tabs'''
@@ -35,7 +92,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def send_row(self, d, f_max, y_max, l0, G, E, A, m, ns, xi):
         '''Creates a row from given inputs'''
         d=d*getattr(u, self.unitD.checkedButton().objectName()[5:])
-
         #computes expressions
         ssy=.45*A/(d**m)
         alpha=ssy/ns
@@ -54,7 +110,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             p=((l0-3*d))/na
             ls=d*(nt+1)
-        print(E, G, D)
         lcr=u.convert_to((N(pi)*D/.5)*(((2*(E-G))/(2*G+E))**.5),u.inch)
 
         #creates items for all output variables
@@ -92,7 +147,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             i_ls, \
             i_lcr])
 
-    def generate(self):
+    def generate_old(self):
         '''gathers values and units then sends for calculations'''
         #Collect inputs
         #Design
@@ -109,15 +164,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             E=self.sb_E.value()*u.pascal*1000000000
         else:
             print("E Imperial")
-            E=self.sb_E.value()*u.psi*1000000
-        
+            E=self.sb_E.value()*u.psi*1000000        
         if self.unitG.checkedButton().objectName()[5:]=="Metric":
             print("G Metric")
             G=self.sb_G.value()*u.pascal*1000000000
         else:
             print("G Imperial")
-            G=self.sb_G.value()*u.psi*1000000
-        
+            G=self.sb_G.value()*u.psi*1000000        
         m=self.sb_m.value()
         A=self.sb_A.value()
         if self.unitA.checkedButton().objectName()[5:]=="Metric":
@@ -126,8 +179,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             A*=u.pascal*1000000*(u.mm**m)
         #Properties
         ns=self.sb_ns.value()
-        xi=self.sb_Xi.value()
-        
+        xi=self.sb_Xi.value()        
         #generates expressions and creates output table
         self.output_table = OutputTable()
         self.output_table.show()
@@ -136,7 +188,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for d in (d / (10**6) for d in range(dmin,dmax+1,dstep)):
             self.send_row(d, f_max, y_max, l0, G, E, A, m, ns, xi)
 
-    def test(self):
+    def test_old(self):
         '''tests output generation with known values'''
         #Collect inputs
         self.chk_ground.setChecked(True)
@@ -155,11 +207,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         A=201*u.psi*1000*(u.inch**m)
         #Properties
         ns=1.2
-        xi=.15
-        
+        xi=.15        
         #generates expressions and creates output table
         self.output_table.show()
-
         #populates output table
         for d in (d / (10**6) for d in range(dmin,dmax+1,dstep)):
             self.send_row(d, f_max, y_max, l0, G, E, A, m, ns, xi)
