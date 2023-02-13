@@ -1,13 +1,26 @@
 '''Runs a DIY desktop continuous spring bender'''
 import sys
-#import sympy.physics.units as u
-import pint
-from sympy import pi, sqrt, N, Eq, symbols, solve, solveset, linsolve
+#import pint
+from sympy.physics.units import *
+from sympy import pi, sqrt, N, Eq, symbols, solve, simplify
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QHeaderView
 from PyQt5.QtGui import QPalette, QColor, QStandardItemModel, QStandardItem
 from ui.ui_MainWindow import Ui_MainWindow
 from ui.ui_OutputTable import  Ui_OutputTable
+
+'''MPsi=Quantity('MegaPsi', abbrev='MPsi')
+MPsi.set_global_relative_scale_factor(mega, psi)
+KPsi=Quantity('MegaPsi', abbrev='KPsi')
+KPsi.set_global_relative_scale_factor(kilo, psi)
+GPa=Quantity('GigaPa', abbrev='GPa')
+GPa.set_global_relative_scale_factor(giga, Pa)
+MPa=Quantity('MegaPa', abbrev='MPa')
+MPa.set_global_relative_scale_factor(mega, Pa)'''
+lbf=Quantity('lbf', abbrev='lbf')
+lbf.set_global_relative_scale_factor((convert_to(pound*acceleration_due_to_gravity,newton))/newton, newton)
+gf=Quantity('gf', abbrev='gf')
+gf.set_global_relative_scale_factor((convert_to(gram*acceleration_due_to_gravity,newton))/newton, newton)
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     '''main window'''
@@ -15,17 +28,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__(parent)
         self.setupUi(self)
         self.setupUnits()
-        #self.tabs.removeTab(3)
-        #self.tabs.removeTab(2)
-        #self.tabs.setCurrentIndex(0)
         self.connections()
-        self.output_table = OutputTable()
 
     def connections(self):
         '''Programs all connections for main window'''
         #self.btn_Generate.clicked.connect(self.equations)
         self.btn_Generate.clicked.connect(self.test)
-        #self.chk_advanced.clicked.connect(self.show_tabs)
 
     def setupUnits(self):
         '''adds units to combo boxes'''
@@ -39,46 +47,162 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cb_A.addItems(["kpsi*in^m","MPa*mm^m"])
 
     def equations(self):
+
+        designZeros = 0
+        materialZeros = 0
+
+        F, Y, L, E, G, A, m, ns, xi, d, OD = symbols('F Y L E G A m ns xi d OD')
+        ssy, alpha, beta, C, D, kb, tau, ID, na, nt = symbols('ssy alpha beta C D kb tau ID na nt')
+        #test and assign design properties
+        if self.sb_F.value() != 0:
+            F= self.sb_F.value()
+            F*= lbf if self.cb_F.currentIndex()==0 else gf
+        else:
+            designZeros+=1
+        if self.sb_Y.value() != 0:
+            Y= self.sb_Y.value()
+            Y*= inch if self.cb_Y.currentIndex()==0 else mm
+        else:
+            designZeros+=1
+        if self.sb_L.value() != 0:
+            L= self.sb_L.value()
+            L*= inch if self.cb_L.currentIndex()==0 else mm
+        else:
+            designZeros+=1
+        if self.sb_d.value() != 0:
+            d= self.sb_d.value()
+            d*= inch if self.cb_d.currentIndex()==0 else mm
+        else:
+            designZeros+=1
+        if self.sb_OD.value() != 0:
+            OD= self.sb_OD.value()
+            OD*= inch if self.cb_OD.currentIndex()==0 else mm
+        else:
+            designZeros+=1
+        #test and assign material properties
+        if self.sb_E.value() != 0:
+            E= self.sb_E.value()
+            E*= mega*psi if self.cb_E.currentIndex()==0 else giga*Pa
+        else:
+            materialZeros+=1
+        if self.sb_G.value() != 0:
+            G= self.sb_E.value()
+            G*= mega*psi if self.cb_G.currentIndex()==0 else giga*Pa
+        else:
+            materialZeros+=1
+        if self.sb_m.value() != 0:
+            m= self.sb_m.value()
+        else:
+            materialZeros+=1
+        if self.sb_A.value() != 0:
+            A= self.sb_A.value()
+            A*= kilo*psi*inch**m if self.cb_A.currentIndex()==0 else mega*Pa*mm**m
+        else:
+            materialZeros+=1
+        if self.sb_ns.value() != 0:
+            ns= self.sb_ns.value()
+        else:
+            materialZeros+=1
+        if self.sb_Xi.value() != 0:
+            xi= self.sb_Xi.value()
+        else:
+            materialZeros+=1
+            
+        #if not (self.countZeros([F, Y, L, d, OD], 1) and self.countZeros([E, G, m, A, ns, xi], 0)):
+        if designZeros!=1 or materialZeros!=0:
+            print("invalid inputs")
+            return
+        #else:
+            #print("valid inputs")
+
+        eqSsy=Eq(ssy,.45*A/(d**m))
+        ssy=solve(eqSsy)[0]
+        eqAlpha=Eq(alpha,eqSsy.rhs/ns)
+        alpha=solve(eqAlpha)[0]
+        eqBeta=Eq(beta,convert_to((8*(1+xi)*F)/(N(pi)*(d**2)),psi)) #I hate hardcoding this into psi, but I don't know how to get it to automatically convert to apropriate pressure units
+        beta=solve(eqBeta)[0]
+        eqC=Eq(C,((2*eqAlpha.rhs-eqBeta.rhs)/(4*eqBeta.rhs))+sqrt((((2*eqAlpha.rhs-eqBeta.rhs)/(4*eqBeta.rhs))**2)-(3*eqAlpha.rhs)/(4*eqBeta.rhs)))
+        C=solve(eqC)[0]
+        print(ssy, alpha, beta, C)
+        
+        '''
+        C=((2*alpha-beta)/(4*beta))+sqrt((((2*alpha-beta)/(4*beta))**2)-(3*alpha)/(4*beta))
+        D=C*d
+        kb=(4*C+2)/(4*C-3)
+        tau=kb*8*F*(1+xi)*D/(N(pi)*d**3)
+        OD=D+d
+        ID=D-d
+        na=(G*(d**4)*Y)/(8*(D**3)*F)
+        nt=na+2'''
+        #print(nsolve([ssy, alpha, beta, C, D, kb, tau, OD, ID, na, nt],[F, Y, L, E, G, A, m, ns, xi, d, OD]))
+        #print(alpha,'\n', beta,'\n', C,'\n', D,'\n', kb,'\n', tau,'\n', OD,'\n', ID,'\n', na,'\n', nt)
+
+    '''def equations(self):
         units = pint.UnitRegistry()
 
-        F, Y, L, E, G, A, m, ns, xi, d = symbols('F Y L E G A m ns xi d')
-        
-        F= self.sb_F.value()*units.force_pound if self.cb_F.currentIndex()==0 else self.sb_F.value()*units.force_gram
-        Y= self.sb_Y.value()*units.inch if self.cb_Y.currentIndex()==0 else self.sb_Y.value()*units.mm
-        L= self.sb_L.value()*units.inch if self.cb_L.currentIndex()==0 else self.sb_L.value()*units.mm
-        d= self.sb_d.value()*units.inch if self.cb_d.currentIndex()==0 else self.sb_d.value()*units.mm
-        OD= self.sb_OD.value()*units.inch if self.cb_OD.currentIndex()==0 else self.sb_OD.value()*units.mm
+        F, Y, L, E, G, A, m, ns, xi, d, OD = symbols('F Y L E G A m ns xi d OD')
+        ssy, alpha, beta, C, D, kb, tau, ID, na, nt = symbols('ssy alpha beta C D kb tau ID na nt')
+
+        if self.sb_F.value() != 0:
+            F= self.sb_F.value()
+        F*=units.force_pound if self.cb_F.currentIndex()==0 else self.sb_F.value()*units.force_gram
+        if self.sb_Y.value() != 0:
+            Y= self.sb_Y.value()
+        Y*=units.inch if self.cb_Y.currentIndex()==0 else self.sb_Y.value()*units.mm
+        if self.sb_L.value() != 0:
+            L= self.sb_L.value()
+        L*=units.inch if self.cb_L.currentIndex()==0 else self.sb_L.value()*units.mm
+        if self.sb_d.value() != 0:
+            d= self.sb_d.value()
+        d*=units.inch if self.cb_d.currentIndex()==0 else self.sb_d.value()*units.mm
+        if self.sb_OD.value() != 0:
+            OD= self.sb_OD.value()
+        OD*=units.inch if self.cb_OD.currentIndex()==0 else self.sb_OD.value()*units.mm
         E= self.sb_E.value()*units.Mpsi if self.cb_E.currentIndex()==0 else self.sb_E.value()*units.gigapascal
         G= self.sb_G.value()*units.Mpsi if self.cb_G.currentIndex()==0 else self.sb_G.value()*units.gigapascal
         m= self.sb_m.value()
-        A= self.sb_A.value()*units.kilopound_force_per_square_inch*units.inch**m if self.cb_A.currentIndex()==0 else self.sb_A.value()*units.MPa*units.mm**m
+        A= self.sb_A.value()*1000*units.psi*units.inch**m if self.cb_A.currentIndex()==0 else self.sb_A.value()*units.MPa*units.mm**m
         ns= self.sb_ns.value()
         xi= self.sb_Xi.value()
+        print(A, d, m)
         
-        '''ssy=Eq(.45*A/(d**m))
-        alpha=Eq(ssy.rhs/ns)
-        beta=Eq((8*(1+xi)*F)/(N(pi)*(d**2)))
-        C=Eq(((2*alpha.rhs-beta.rhs)/(4*beta.rhs))+sqrt(((2*alpha.rhs-beta.rhs)/(4*beta.rhs))**2-((3*alpha.rhs)/(4*beta.rhs))))
-        D=Eq(C.rhs*d)
-        kb=Eq((4*C.rhs+2)/(4*C.rhs-3))
-        tau=Eq(kb.rhs*8*F*(1+xi)*D.rhs/(N(pi)*d**3))
-        OD=Eq(D.rhs+d)
-        ID=Eq(D.rhs-d)
-        na=Eq((G.rhs*(d**4)*Y)/(8*(D.rhs**3)*F))
-        nt=Eq(na.rhs+2)'''
+        eq_ssy=Eq(.45*A/(d**m))
+        print(eq_ssy)
+        ssy=solve(eq_ssy,ssy)
+        alpha=ssy/ns
+        beta=(8*(1+xi)*F)/(N(pi)*(d**2))
+        C=((2*alpha-beta)/(4*beta))+sqrt((((2*alpha-beta)/(4*beta))**2)-(3*alpha)/(4*beta))
+        D=C*d
+        kb=(4*C+2)/(4*C-3)
+        tau=kb*8*F*(1+xi)*D/(N(pi)*d**3)
+        OD=D+d
+        ID=D-d
+        na=(G*(d**4)*Y)/(8*(D**3)*F)
+        nt=na+2
+        #print(nsolve([ssy, alpha, beta, C, D, kb, tau, OD, ID, na, nt],[F, Y, L, E, G, A, m, ns, xi, d, OD]))
+        #print(alpha,'\n', beta,'\n', C,'\n', D,'\n', kb,'\n', tau,'\n', OD,'\n', ID,'\n', na,'\n', nt)
+        print(d,'\n', OD)'''
 
     def test(self):
-       self.sb_F.setValue(20)
-       self.cb_F.setCurrentIndex(0)
-       self.sb_Y.setValue(2)
-       self.cb_Y.setCurrentIndex(0)
-       self.sb_L.setValue(3.25)
-       self.cb_L.setCurrentIndex(0)
-       self.sb_d.setValue(.08)
-       self.cb_d.setCurrentIndex(0)
-       self.sb_OD.setValue(0)
-       self.cb_OD.setCurrentIndex(0)
-       self.equations()
+        self.sb_F.setValue(20)
+        self.cb_F.setCurrentIndex(0)
+        self.sb_Y.setValue(2)
+        self.cb_Y.setCurrentIndex(0)
+        self.sb_L.setValue(3.25)
+        self.cb_L.setCurrentIndex(0)
+        #determine OD
+        if True:
+            self.sb_d.setValue(.08)
+            self.cb_d.setCurrentIndex(0)
+            self.sb_OD.setValue(0)
+            self.cb_OD.setCurrentIndex(0)
+        else:
+            self.sb_d.setValue(0)
+            self.cb_d.setCurrentIndex(0)
+            self.sb_OD.setValue(0.922679008)
+            self.cb_OD.setCurrentIndex(0)
+        #determine D
+        self.equations()
 
     def show_tabs(self):
         '''Adds or removes advanced tabs'''
@@ -146,85 +270,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             i_p, \
             i_ls, \
             i_lcr])
-
-    def generate_old(self):
-        '''gathers values and units then sends for calculations'''
-        #Collect inputs
-        #Design
-        f_max = self.sb_F.value()*getattr(u, self.unitF.checkedButton().objectName()[5:])*u.convert_to((9.80665*u.m/u.s**2),u.N)
-        y_max = self.sb_F.value()*getattr(u, self.unitY.checkedButton().objectName()[5:])
-        l0 = self.sb_F.value()*getattr(u, self.unitL.checkedButton().objectName()[5:])
-        #Wire Diameter
-        dmin=int(self.sb_dmin.value()*(10**6))
-        dstep=int(self.sb_dstep.value()*(10**6))
-        dmax=int(self.sb_dmax.value()*(10**6))
-        #Material
-        if self.unitE.checkedButton().objectName()[5:]=="Metric":
-            print("E Metric")
-            E=self.sb_E.value()*u.pascal*1000000000
-        else:
-            print("E Imperial")
-            E=self.sb_E.value()*u.psi*1000000        
-        if self.unitG.checkedButton().objectName()[5:]=="Metric":
-            print("G Metric")
-            G=self.sb_G.value()*u.pascal*1000000000
-        else:
-            print("G Imperial")
-            G=self.sb_G.value()*u.psi*1000000        
-        m=self.sb_m.value()
-        A=self.sb_A.value()
-        if self.unitA.checkedButton().objectName()[5:]=="Metric":
-            A*=u.psi*1000*(u.inch**m)
-        else:
-            A*=u.pascal*1000000*(u.mm**m)
-        #Properties
-        ns=self.sb_ns.value()
-        xi=self.sb_Xi.value()        
-        #generates expressions and creates output table
-        self.output_table = OutputTable()
-        self.output_table.show()
-
-        #populates output table
-        for d in (d / (10**6) for d in range(dmin,dmax+1,dstep)):
-            self.send_row(d, f_max, y_max, l0, G, E, A, m, ns, xi)
-
-    def test_old(self):
-        '''tests output generation with known values'''
-        #Collect inputs
-        self.chk_ground.setChecked(True)
-        #Design
-        f_max = 20*u.pound*u.convert_to((9.80665*u.m/u.s**2),u.N)
-        y_max = 2*u.inch
-        l0 = 3.25*u.inch
-        #Wire Diameter
-        dmin=int(.055*(10**6))
-        dstep=int(.005*(10**6))
-        dmax=int(.105*(10**6))
-        #Material
-        E=28.5*u.psi*1000000
-        G=11.75*u.psi*1000000
-        m=.145
-        A=201*u.psi*1000*(u.inch**m)
-        #Properties
-        ns=1.2
-        xi=.15        
-        #generates expressions and creates output table
-        self.output_table.show()
-        #populates output table
-        for d in (d / (10**6) for d in range(dmin,dmax+1,dstep)):
-            self.send_row(d, f_max, y_max, l0, G, E, A, m, ns, xi)
-
-class OutputTable(QWidget, Ui_OutputTable):
-    '''Table for storing calculated values'''
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setupUi(self)
-        self.output_model = QStandardItemModel(0,15)
-        self.output_model.setHorizontalHeaderLabels(
-            ["d","Ssy","α","β","C","D","K_B","τ_s","OD","ID","Na","Nt","p","Ls","L_cr"]
-        )
-        self.tableView.setModel(self.output_model)
-        self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
